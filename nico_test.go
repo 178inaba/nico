@@ -5,12 +5,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestLogin(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Set-Cookie", "user_session=deleted; Max-Age=0; Expires=Wed, 07 Jun 2017 09:43:04 GMT; Path=/")
-		w.Header().Set("Set-Cookie", "user_session=foobarbaz; Max-Age=2591999; Expires=Fri, 07 Jul 2017 09:43:03 GMT; Path=/; Domain=.nicovideo.jp")
+		http.SetCookie(w, &http.Cookie{Name: "user_session", Value: "deleted", Path: "/", Expires: time.Now()})
+		http.SetCookie(w, &http.Cookie{Name: "user_session", Value: "foobarbaz", Path: "/", Expires: time.Now().AddDate(0, 1, 0), Domain: ".nicovideo.jp"})
+		http.Redirect(w, r, "http://example.com", http.StatusFound)
 	}))
 	defer ts.Close()
 
