@@ -63,12 +63,7 @@ type PlayerStatus struct {
 	Status string `xml:"status,attr"`
 	Time   int64  `xml:"time,attr"`
 	Stream Stream `xml:"stream"`
-	User   struct {
-		UserID    string `xml:"user_id"`
-		Name      string `xml:"nickname"`
-		IsPremium int    `xml:"is_premium"`
-		RoomLabel string `xml:"room_label"`
-	} `xml:"user"`
+	User   User   `xml:"user"`
 
 	Ms struct {
 		Addr   string `xml:"addr"`
@@ -162,6 +157,14 @@ type Contents struct {
 	DisableVideo int64  `xml:"disableVideo,attr"`
 	StartTime    int64  `xml:"start_time,attr"`
 	Contents     string `xml:",chardata"`
+}
+
+// User is niconico user data in player status.
+type User struct {
+	UserID    string `xml:"user_id"`
+	Nickname  string `xml:"nickname"`
+	IsPremium int    `xml:"is_premium"`
+	RoomLabel string `xml:"room_label"`
 }
 
 func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerStatus, error) {
