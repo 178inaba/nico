@@ -67,7 +67,7 @@ type PlayerStatus struct {
 
 	Ms struct {
 		Addr   string `xml:"addr"`
-		Port   int    `xml:"port"`
+		Port   int64  `xml:"port"`
 		Thread int64  `xml:"thread"`
 	} `xml:"ms"`
 }
@@ -161,10 +161,32 @@ type Contents struct {
 
 // User is niconico user data in player status.
 type User struct {
-	UserID    string `xml:"user_id"`
-	Nickname  string `xml:"nickname"`
-	IsPremium int    `xml:"is_premium"`
-	RoomLabel string `xml:"room_label"`
+	UserID         int64  `xml:"user_id"`
+	Nickname       string `xml:"nickname"`
+	IsPremium      int64  `xml:"is_premium"`
+	UserAge        int64  `xml:"userAge"`
+	UserSex        int64  `xml:"userSex"`
+	UserDomain     string `xml:"userDomain"`
+	UserPrefecture int64  `xml:"userPrefecture"`
+	UserLanguage   string `xml:"userLanguage"`
+	RoomLabel      string `xml:"room_label"`
+	RoomSeetno     int64  `xml:"room_seetno"`
+
+	// TODO
+	IsJoin interface{} `xml:"is_join"`
+
+	TwitterInfo TwitterInfo `xml:"twitter_info"`
+}
+
+// TwitterInfo is user's twitter info in user.
+type TwitterInfo struct {
+	Status          string      `xml:"status"`
+	ScreenName      interface{} `xml:"screen_name"`
+	FollowersCount  int64       `xml:"followers_count"`
+	IsVip           int64       `xml:"is_vip"`
+	ProfileImageURL string      `xml:"profile_image_url"`
+	AfterAuth       int64       `xml:"after_auth"`
+	TweetToken      string      `xml:"tweet_token"`
 }
 
 func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerStatus, error) {
