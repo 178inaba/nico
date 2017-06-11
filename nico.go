@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -269,6 +270,9 @@ func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerSta
 	ps := PlayerStatus{}
 	if err := xml.NewDecoder(resp.Body).Decode(&ps); err != nil {
 		return nil, err
+	}
+	if ps.Status != "ok" {
+		return nil, fmt.Errorf("%s: %s", ps.Status, ps.Error.Code)
 	}
 
 	return &ps, nil
