@@ -47,6 +47,10 @@ func (c *Client) Login(ctx context.Context, mail, password string) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusFound {
+		return errors.New(resp.Status)
+	}
+
 	cookies := resp.Cookies()
 	for i := len(cookies) - 1; i >= 0; i-- {
 		if cookies[i].Name == "user_session" {
@@ -73,6 +77,7 @@ type PlayerStatus struct {
 	Twitter Twitter `xml:"twitter"`
 	Player  Player  `xml:"player"`
 	Marquee Marquee `xml:"marquee"`
+	Error   Error   `xml:"error"`
 }
 
 // Stream is niconico live player status in player status.
@@ -229,6 +234,10 @@ type Marquee struct {
 	ForceNicowariOff int64  `xml:"force_nicowari_off"`
 }
 
+type Error struct {
+	Code string `xml:"code"`
+}
+
 func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerStatus, error) {
 	u, err := url.Parse(c.liveBaseRawurl)
 	if err != nil {
@@ -252,6 +261,10 @@ func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerSta
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(resp.Status)
+	}
 
 	ps := PlayerStatus{}
 	if err := xml.NewDecoder(resp.Body).Decode(&ps); err != nil {
