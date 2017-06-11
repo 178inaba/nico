@@ -64,12 +64,15 @@ type PlayerStatus struct {
 	Time   int64  `xml:"time,attr"`
 	Stream Stream `xml:"stream"`
 	User   User   `xml:"user"`
+	Rtmp   Rtmp   `xml:"rtmp"`
+	Ms     Ms     `xml:"ms"`
 
-	Ms struct {
-		Addr   string `xml:"addr"`
-		Port   int64  `xml:"port"`
-		Thread int64  `xml:"thread"`
-	} `xml:"ms"`
+	// TODO
+	TidList interface{} `xml:"tid_list"`
+
+	Twitter Twitter `xml:"twitter"`
+	Player  Player  `xml:"player"`
+	Marquee Marquee `xml:"marquee"`
 }
 
 // Stream is niconico live player status in player status.
@@ -187,6 +190,43 @@ type TwitterInfo struct {
 	ProfileImageURL string      `xml:"profile_image_url"`
 	AfterAuth       int64       `xml:"after_auth"`
 	TweetToken      string      `xml:"tweet_token"`
+}
+
+type Rtmp struct {
+	IsFms     int64  `xml:"is_fms,attr"`
+	RtmptPort int64  `xml:"rtmpt_port,attr"`
+	URL       string `xml:"url"`
+	Ticket    string `xml:"ticket"`
+}
+
+type Ms struct {
+	Addr   string `xml:"addr"`
+	Port   int64  `xml:"port"`
+	Thread int64  `xml:"thread"`
+}
+
+type Twitter struct {
+	LiveEnabled  int64  `xml:"live_enabled"`
+	VipModeCount int64  `xml:"vip_mode_count"`
+	LiveApiUrl   string `xml:"live_api_url"`
+}
+
+type Player struct {
+	QosAnalytics                 int64       `xml:"qos_analytics"`
+	DialogImage                  DialogImage `xml:"dialog_image"`
+	IsNoticeViewerBalloonEnabled int64       `xml:"is_notice_viewer_balloon_enabled"`
+	ErrorReport                  int64       `xml:"error_report"`
+}
+
+type DialogImage struct {
+	Oidashi string `xml:"oidashi"`
+}
+
+type Marquee struct {
+	Category         string `xml:"category"`
+	GameKey          string `xml:"game_key"`
+	GameTime         int64  `xml:"game_time"`
+	ForceNicowariOff int64  `xml:"force_nicowari_off"`
 }
 
 func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerStatus, error) {
