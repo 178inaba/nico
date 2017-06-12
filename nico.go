@@ -1,10 +1,13 @@
 package nico
 
 import (
+	"bufio"
 	"context"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -211,6 +214,44 @@ type Ms struct {
 	Thread int64  `xml:"thread"`
 }
 
+func (m *Ms) StreamingComment(ctx context.Context, resFrom int64) (chan Comment, error) {
+	var d net.Dialer
+	conn, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", m.Addr, m.Port))
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := xml.Marshal(SendThread{Thread: m.Thread, Version: 20061206, ResFrom: resFrom})
+	if err != nil {
+		return nil, err
+	}
+	b = append(b, 0)
+	io.WriteString(conn, string(b))
+
+	r := bufio.NewReader(conn)
+	ch := make(chan Comment)
+	go func() {
+		defer close(ch)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			rb, err := r.ReadSlice(0)
+			if err != nil {
+				ch <- &CommentError{err}
+			}
+			var rt ReceiveThread
+			if err := xml.Unmarshal(rb, &rt); err == nil {
+				ch <- &rt
+			}
+			// TODO Add chat.
+		}
+	}()
+	return ch, nil
+}
+
 type Twitter struct {
 	LiveEnabled  int64  `xml:"live_enabled"`
 	VipModeCount int64  `xml:"vip_mode_count"`
@@ -277,3 +318,30 @@ func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerSta
 
 	return &ps, nil
 }
+
+type SendThread struct {
+	XMLName xml.Name `xml:"thread"`
+	Thread  int64    `xml:"thread,attr"`
+	Version int64    `xml:"version,attr"`
+	ResFrom int64    `xml:"res_from,attr"`
+}
+
+type Comment interface {
+	comment()
+}
+
+type ReceiveThread struct {
+	XMLName    xml.Name `xml:"thread"`
+	Resultcode int64    `xml:"resultcode,attr"`
+	Thread     int64    `xml:"thread,attr"`
+	LastRes    int64    `xml:"last_res,attr"`
+	Ticket     string   `xml:"ticket,attr"`
+	Revision   int64    `xml:"revision,attr"`
+	ServerTime int64    `xml:"server_time,attr"`
+}
+
+func (t *ReceiveThread) comment() {}
+
+type CommentError struct{ error }
+
+func (e *CommentError) comment() {}
