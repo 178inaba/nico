@@ -246,7 +246,10 @@ func (m *Ms) StreamingComment(ctx context.Context, resFrom int64) (chan Comment,
 			if err := xml.Unmarshal(rb, &rt); err == nil {
 				ch <- &rt
 			}
-			// TODO Add chat.
+			var chat Chat
+			if err := xml.Unmarshal(rb, &chat); err == nil {
+				ch <- &chat
+			}
 		}
 	}()
 	return ch, nil
@@ -341,6 +344,23 @@ type ReceiveThread struct {
 }
 
 func (t *ReceiveThread) comment() {}
+
+type Chat struct {
+	XMLName   xml.Name `xml:"chat"`
+	Thread    int64    `xml:"thread,attr"`
+	No        int64    `xml:"no,attr"`
+	Vpos      int64    `xml:"vpos,attr"`
+	Date      int64    `xml:"date,attr"`
+	DateUsec  int64    `xml:"date_usec,attr"`
+	Mail      string   `xml:"mail,attr"`
+	UserID    string   `xml:"user_id,attr"`
+	Premium   int64    `xml:"premium,attr"`
+	Anonymity int64    `xml:"anonymity,attr"`
+	Locale    string   `xml:"locale,attr"`
+	Comment   string   `xml:",chardata"`
+}
+
+func (c *Chat) comment() {}
 
 type CommentError struct{ error }
 
