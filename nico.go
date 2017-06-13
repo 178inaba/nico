@@ -221,6 +221,10 @@ func (m *Ms) StreamingComment(ctx context.Context, resFrom int64) (chan Comment,
 	if err != nil {
 		return nil, err
 	}
+	go func() {
+		<-ctx.Done()
+		conn.Close()
+	}()
 
 	b, err := xml.Marshal(SendThread{Thread: m.Thread, Version: 20061206, ResFrom: resFrom})
 	if err != nil {
