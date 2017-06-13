@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -365,3 +366,47 @@ func (c *Chat) comment() {}
 type CommentError struct{ error }
 
 func (e *CommentError) comment() {}
+
+func (c *Client) GetPostkey(ctx context.Context, thread int64) (string, error) {
+	u, err := url.Parse(c.liveBaseRawurl)
+	if err != nil {
+		return "", err
+	}
+	u.Path = "api/getpostkey"
+
+	v := url.Values{}
+	v.Set("thread", fmt.Sprint(thread))
+	u.RawQuery = v.Encode()
+
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		return "", err
+	}
+	req = req.WithContext(ctx)
+	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.userSession})
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New(resp.Status)
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	rv, err := url.ParseQuery(string(b))
+	if err != nil {
+		return "", err
+	}
+	postkey := rv.Get("postkey")
+	if postkey == "" {
+		return "", errors.New("postkey is empty")
+	}
+
+	return postkey, nil
+}
