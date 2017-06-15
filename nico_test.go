@@ -18,8 +18,12 @@ func TestLogin(t *testing.T) {
 	defer ts.Close()
 
 	c := &Client{loginRawurl: ts.URL}
-	if err := c.Login(context.Background(), "foo@foo.com", "bar"); err != nil {
+	us, err := c.Login(context.Background(), "foo@foo.com", "bar")
+	if err != nil {
 		t.Fatalf("should not be fail: %v", err)
+	}
+	if us != "foobarbaz" {
+		t.Fatalf("want %q but %q", "foobarbaz", us)
 	}
 	if c.userSession != "foobarbaz" {
 		t.Fatalf("want %q but %q", "foobarbaz", c.userSession)

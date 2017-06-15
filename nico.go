@@ -31,14 +31,14 @@ func NewClient() *Client {
 }
 
 // Login is login to niconico and get user session.
-func (c *Client) Login(ctx context.Context, mail, password string) error {
+func (c *Client) Login(ctx context.Context, mail, password string) (string, error) {
 	v := url.Values{}
 	v.Set("mail", mail)
 	v.Set("password", password)
 
 	req, err := http.NewRequest(http.MethodPost, c.loginRawurl, strings.NewReader(v.Encode()))
 	if err != nil {
-		return err
+		return "", err
 	}
 	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -48,23 +48,23 @@ func (c *Client) Login(ctx context.Context, mail, password string) error {
 	c.CheckRedirect = func(req *http.Request, via []*http.Request) error { return http.ErrUseLastResponse }
 	resp, err := c.Do(req)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusFound {
-		return errors.New(resp.Status)
+		return "", errors.New(resp.Status)
 	}
 
 	cookies := resp.Cookies()
 	for i := len(cookies) - 1; i >= 0; i-- {
 		if cookies[i].Name == "user_session" {
 			c.userSession = cookies[i].Value
-			return nil
+			return c.userSession, nil
 		}
 	}
 
-	return errors.New("user session not found")
+	return "", errors.New("login failed")
 }
 
 // PlayerStatus is niconico live player status.
