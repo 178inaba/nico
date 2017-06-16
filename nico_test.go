@@ -25,8 +25,8 @@ func TestLogin(t *testing.T) {
 	if us != "foobarbaz" {
 		t.Fatalf("want %q but %q", "foobarbaz", us)
 	}
-	if c.userSession != "foobarbaz" {
-		t.Fatalf("want %q but %q", "foobarbaz", c.userSession)
+	if c.UserSession != "foobarbaz" {
+		t.Fatalf("want %q but %q", "foobarbaz", c.UserSession)
 	}
 }
 
@@ -49,7 +49,7 @@ func TestGetPlayerStatus(t *testing.T) {
 
 	c := &Client{
 		liveBaseRawurl: ts.URL,
-		userSession:    "user-session",
+		UserSession:    "user-session",
 	}
 	ps, err := c.GetPlayerStatus(context.Background(), "lv123456789")
 	if err != nil {

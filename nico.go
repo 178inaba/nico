@@ -19,7 +19,7 @@ type Client struct {
 	http.Client
 	loginRawurl    string
 	liveBaseRawurl string
-	userSession    string
+	UserSession    string
 }
 
 // NewClient return new niconico client.
@@ -59,8 +59,8 @@ func (c *Client) Login(ctx context.Context, mail, password string) (string, erro
 	cookies := resp.Cookies()
 	for i := len(cookies) - 1; i >= 0; i-- {
 		if cookies[i].Name == "user_session" {
-			c.userSession = cookies[i].Value
-			return c.userSession, nil
+			c.UserSession = cookies[i].Value
+			return c.UserSession, nil
 		}
 	}
 
@@ -304,7 +304,7 @@ func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerSta
 		return nil, err
 	}
 	req = req.WithContext(ctx)
-	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.userSession})
+	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.UserSession})
 
 	resp, err := c.Do(req)
 	if err != nil {
@@ -387,7 +387,7 @@ func (c *Client) GetPostkey(ctx context.Context, thread int64) (string, error) {
 		return "", err
 	}
 	req = req.WithContext(ctx)
-	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.userSession})
+	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.UserSession})
 
 	resp, err := c.Do(req)
 	if err != nil {
