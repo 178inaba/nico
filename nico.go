@@ -217,15 +217,14 @@ func (c *LiveClient) StreamingComment(ctx context.Context, resFrom int64) (chan 
 	return ch, nil
 }
 
-func (c *LiveClient) PostComment(ctx context.Context, comment string) error {
+func (c *LiveClient) PostComment(ctx context.Context, comment string, mail Mail) error {
 	postkey, err := c.GetPostkey(ctx, c.ps.Ms.Thread)
 	if err != nil {
 		return err
 	}
 	chat := SendChat{
-		Vpos: (time.Now().UnixNano() - c.ps.Stream.BaseTime*int64(time.Second)) / (int64(time.Millisecond) * 10),
-		// TODO Specify by argument.
-		Mail:    "184",
+		Vpos:    (time.Now().UnixNano() - c.ps.Stream.BaseTime*int64(time.Second)) / (int64(time.Millisecond) * 10),
+		Mail:    mail.String(),
 		UserID:  fmt.Sprint(c.ps.User.UserID),
 		Postkey: postkey,
 		Comment: comment,
@@ -299,7 +298,7 @@ func (e *CommentError) comment() {}
 type SendChat struct {
 	XMLName xml.Name `xml:"chat"`
 	Vpos    int64    `xml:"vpos,attr"`
-	Mail    string   `xml:"mail,attr"`
+	Mail    string   `xml:"mail,attr,omitempty"`
 	UserID  string   `xml:"user_id,attr"`
 	Postkey string   `xml:"postkey,attr"`
 	Comment string   `xml:",chardata"`
