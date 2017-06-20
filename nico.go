@@ -100,7 +100,7 @@ func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerSta
 		return nil, err
 	}
 	if ps.Status != "ok" {
-		return nil, fmt.Errorf("%s: %s", ps.Status, ps.Error.Code)
+		return nil, PlayerStatusError{Status: ps.Status, Code: ps.Error.Code}
 	}
 
 	return &ps, nil
@@ -302,4 +302,15 @@ type SendChat struct {
 	UserID  string   `xml:"user_id,attr"`
 	Postkey string   `xml:"postkey,attr"`
 	Comment string   `xml:",chardata"`
+}
+
+const PlayerStatusErrorCodeFull = "full"
+
+type PlayerStatusError struct {
+	Status string
+	Code   string
+}
+
+func (e PlayerStatusError) Error() string {
+	return fmt.Sprintf("%s: %s", e.Status, e.Code)
 }
