@@ -17,16 +17,18 @@ import (
 // Client is a API client for niconico.
 type Client struct {
 	http.Client
-	loginRawurl    string
-	liveBaseRawurl string
-	UserSession    string
+	loginRawurl         string
+	liveBaseRawurl      string
+	communityBaseRawurl string
+	UserSession         string
 }
 
 // NewClient return new niconico client.
 func NewClient() *Client {
 	return &Client{
-		loginRawurl:    "https://secure.nicovideo.jp/secure/login",
-		liveBaseRawurl: "http://live.nicovideo.jp",
+		loginRawurl:         "https://secure.nicovideo.jp/secure/login",
+		liveBaseRawurl:      "http://live.nicovideo.jp",
+		communityBaseRawurl: "http://com.nicovideo.jp",
 	}
 }
 
@@ -148,6 +150,43 @@ func (c *Client) GetPostkey(ctx context.Context, thread int64) (string, error) {
 	}
 
 	return postkey, nil
+}
+
+func (c *Client) FollowCommunity(ctx context.Context, communityID string) error {
+	u, err := url.Parse(c.communityBaseRawurl)
+	if err != nil {
+		return err
+	}
+	u.Path = fmt.Sprintf("motion/%s", communityID)
+
+	v := url.Values{}
+	v.Set("mode", "commit")
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), strings.NewReader(v.Encode()))
+	if err != nil {
+		return err
+	}
+	req = req.WithContext(ctx)
+	req.Header.Set("Referer", u.String())
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.UserSession})
+
+	cr := c.CheckRedirect
+	defer func() { c.CheckRedirect = cr }()
+	c.CheckRedirect = func(req *http.Request, via []*http.Request) error { return http.ErrUseLastResponse }
+	resp, err := c.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusFound {
+		return errors.New(resp.Status)
+	} else if !strings.Contains(resp.Header.Get("Location"), "done") {
+		return errors.New("community follow failed")
+	}
+
+	return nil
 }
 
 func (c *Client) MakeLiveClient(ctx context.Context, liveID string) (*LiveClient, error) {
