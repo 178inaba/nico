@@ -12,6 +12,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 // Client is a API client for niconico.
@@ -184,6 +186,90 @@ func (c *Client) FollowCommunity(ctx context.Context, communityID string) error 
 		return errors.New(resp.Status)
 	} else if !strings.Contains(resp.Header.Get("Location"), "done") {
 		return errors.New("community follow failed")
+	}
+
+	return nil
+}
+
+func (c *Client) getLeaveCommunityFormData(ctx context.Context, communityID string) (url.Values, error) {
+	u, err := url.Parse(c.communityBaseRawurl)
+	if err != nil {
+		return nil, err
+	}
+	u.Path = fmt.Sprintf("leave/%s", communityID)
+
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.UserSession})
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(resp.Status)
+	}
+
+	doc, err := goquery.NewDocumentFromResponse(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	v := url.Values{}
+	doc.Find(".leave_form input").Each(func(i int, s *goquery.Selection) {
+		name, ok := s.Attr("name")
+		if !ok {
+			return
+		}
+		value, ok := s.Attr("value")
+		if !ok {
+			return
+		}
+		v.Set(name, value)
+	})
+
+	return v, nil
+}
+
+func (c *Client) LeaveCommunity(ctx context.Context, communityID string) error {
+	u, err := url.Parse(c.communityBaseRawurl)
+	if err != nil {
+		return err
+	}
+	u.Path = fmt.Sprintf("leave/%s", communityID)
+
+	v, err := c.getLeaveCommunityFormData(ctx, communityID)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), strings.NewReader(v.Encode()))
+	if err != nil {
+		return err
+	}
+	req = req.WithContext(ctx)
+	req.Header.Set("Referer", u.String())
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.UserSession})
+
+	cr := c.CheckRedirect
+	defer func() { c.CheckRedirect = cr }()
+	c.CheckRedirect = func(req *http.Request, via []*http.Request) error { return http.ErrUseLastResponse }
+	resp, err := c.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusFound {
+		return errors.New(resp.Status)
+	} else if !strings.Contains(resp.Header.Get("Location"), "done") {
+		return errors.New("community leave failed")
 	}
 
 	return nil
