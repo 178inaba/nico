@@ -429,7 +429,11 @@ type SendChat struct {
 	Comment string   `xml:",chardata"`
 }
 
-const PlayerStatusErrorCodeFull = "full"
+const (
+	PlayerStatusErrorCodeFull                   = "full"
+	PlayerStatusErrorCodeNotlogin               = "notlogin"
+	PlayerStatusErrorCodeRequireCommunityMember = "require_community_member"
+)
 
 type PlayerStatusError struct {
 	Status string
