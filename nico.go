@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"path"
+	"regexp"
 	"strings"
 	"time"
 
@@ -273,6 +275,42 @@ func (c *Client) LeaveCommunity(ctx context.Context, communityID string) error {
 	}
 
 	return nil
+}
+
+func (c *Client) GetCommunityIDFromLiveID(ctx context.Context, liveID string) (string, error) {
+	u, err := url.Parse(c.liveBaseRawurl)
+	if err != nil {
+		return "", err
+	}
+	u.Path = path.Join("watch", liveID)
+
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		return "", err
+	}
+	req = req.WithContext(ctx)
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New(resp.Status)
+	}
+
+	doc, err := goquery.NewDocumentFromResponse(resp)
+	if err != nil {
+		return "", err
+	}
+
+	href, ok := doc.Find(".shosai > a").Attr("href")
+	if !ok {
+		return "", errors.New("community not found")
+	}
+
+	return regexp.MustCompile(`co\d+`).FindString(href), nil
 }
 
 func (c *Client) MakeLiveClient(ctx context.Context, liveID string) (*LiveClient, error) {
