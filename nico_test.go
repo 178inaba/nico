@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -63,5 +64,24 @@ func TestGetPlayerStatus(t *testing.T) {
 	}
 	if ps.Stream.Title != "test-title" {
 		t.Fatalf("want %q but %q", "test-title", ps.Stream.Title)
+	}
+}
+
+func TestGetCommunityIDFromLiveID(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.URL.Path, "lv123456789") {
+			t.Fatalf("%q should contain %q", r.URL.Path, "lv123456789")
+		}
+		io.WriteString(w, `<div class="shosai"><a href="http://com.nicovideo.jp/community/co1234567">foo</a></div>`)
+	}))
+	defer ts.Close()
+
+	c := &Client{liveBaseRawurl: ts.URL}
+	communityID, err := c.GetCommunityIDFromLiveID(context.Background(), "lv123456789")
+	if err != nil {
+		t.Fatalf("should not be fail: %v", err)
+	}
+	if communityID != "co1234567" {
+		t.Fatalf("want %q but %q", "co1234567", communityID)
 	}
 }
