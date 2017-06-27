@@ -18,6 +18,13 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+var findCommunityID = func() func(string) string {
+	re := regexp.MustCompile(`co\d+`)
+	return func(s string) string {
+		return re.Copy().FindString(s)
+	}
+}()
+
 // Client is a API client for niconico.
 type Client struct {
 	http.Client
@@ -310,7 +317,7 @@ func (c *Client) GetCommunityIDFromLiveID(ctx context.Context, liveID string) (s
 		return "", errors.New("community not found")
 	}
 
-	return regexp.MustCompile(`co\d+`).FindString(href), nil
+	return findCommunityID(href), nil
 }
 
 func (c *Client) MakeLiveClient(ctx context.Context, liveID string) (*LiveClient, error) {
