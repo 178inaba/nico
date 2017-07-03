@@ -80,6 +80,7 @@ func (c *Client) Login(ctx context.Context, mail, password string) (string, erro
 	return "", errors.New("login failed")
 }
 
+// GetPlayerStatus gets the player status.
 func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerStatus, error) {
 	u, err := url.Parse(c.liveBaseRawurl)
 	if err != nil {
@@ -119,6 +120,7 @@ func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerSta
 	return &ps, nil
 }
 
+// GetPostkey gets the key to be specified when posting a comment.
 func (c *Client) GetPostkey(ctx context.Context, thread int64) (string, error) {
 	u, err := url.Parse(c.liveBaseRawurl)
 	if err != nil {
@@ -163,6 +165,7 @@ func (c *Client) GetPostkey(ctx context.Context, thread int64) (string, error) {
 	return postkey, nil
 }
 
+// FollowCommunity follows community of communityID.
 func (c *Client) FollowCommunity(ctx context.Context, communityID string) error {
 	u, err := url.Parse(c.communityBaseRawurl)
 	if err != nil {
@@ -245,6 +248,7 @@ func (c *Client) getLeaveCommunityFormData(ctx context.Context, communityID stri
 	return v, nil
 }
 
+// LeaveCommunity leaves the community of communityID.
 func (c *Client) LeaveCommunity(ctx context.Context, communityID string) error {
 	u, err := url.Parse(c.communityBaseRawurl)
 	if err != nil {
@@ -284,6 +288,7 @@ func (c *Client) LeaveCommunity(ctx context.Context, communityID string) error {
 	return nil
 }
 
+// GetCommunityIDFromLiveID gets the ID of the community that is broadcasting in liveID.
 func (c *Client) GetCommunityIDFromLiveID(ctx context.Context, liveID string) (string, error) {
 	u, err := url.Parse(c.liveBaseRawurl)
 	if err != nil {
@@ -320,6 +325,7 @@ func (c *Client) GetCommunityIDFromLiveID(ctx context.Context, liveID string) (s
 	return findCommunityID(href), nil
 }
 
+// MakeLiveClient creates a client with broadcast information from liveID.
 func (c *Client) MakeLiveClient(ctx context.Context, liveID string) (*LiveClient, error) {
 	ps, err := c.GetPlayerStatus(ctx, liveID)
 	if err != nil {
