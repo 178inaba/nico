@@ -2,6 +2,7 @@ package nico
 
 import "strings"
 
+// Mail is a structure that specifies comment options.
 type Mail struct {
 	Is184 bool
 }
