@@ -345,6 +345,7 @@ func (c *Client) MakeLiveClient(ctx context.Context, liveID string) (*LiveClient
 	return &LiveClient{Client: c, ps: ps, conn: conn}, nil
 }
 
+// LiveClient is a client with broadcast information.
 type LiveClient struct {
 	*Client
 	ps   *PlayerStatus
