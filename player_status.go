@@ -151,7 +151,7 @@ type Ms struct {
 type Twitter struct {
 	LiveEnabled  int64  `xml:"live_enabled"`
 	VipModeCount int64  `xml:"vip_mode_count"`
-	LiveApiUrl   string `xml:"live_api_url"`
+	LiveAPIURL   string `xml:"live_api_url"`
 }
 
 type Player struct {
