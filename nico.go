@@ -352,6 +352,7 @@ type LiveClient struct {
 	conn net.Conn
 }
 
+// StreamingComment return the channel that receives comment.
 func (c *LiveClient) StreamingComment(ctx context.Context, resFrom int64) (chan Comment, error) {
 	b, err := xml.Marshal(SendThread{Thread: c.ps.Ms.Thread, Version: 20061206, ResFrom: resFrom})
 	if err != nil {
@@ -394,6 +395,7 @@ func (c *LiveClient) StreamingComment(ctx context.Context, resFrom int64) (chan 
 	return ch, nil
 }
 
+// PostComment post the comment.
 func (c *LiveClient) PostComment(ctx context.Context, comment string, mail Mail) error {
 	postkey, err := c.GetPostkey(ctx, c.ps.Ms.Thread)
 	if err != nil {
@@ -417,6 +419,7 @@ func (c *LiveClient) PostComment(ctx context.Context, comment string, mail Mail)
 	return nil
 }
 
+// SendThread is an xml struct of the thread to send.
 type SendThread struct {
 	XMLName xml.Name `xml:"thread"`
 	Thread  int64    `xml:"thread,attr"`
@@ -424,10 +427,12 @@ type SendThread struct {
 	ResFrom int64    `xml:"res_from,attr"`
 }
 
+// Comment is a interface of struct received on the chan returned by PostComment.
 type Comment interface {
 	comment()
 }
 
+// Thread is a struct of xml received immediately after connection.
 type Thread struct {
 	XMLName    xml.Name `xml:"thread"`
 	Resultcode int64    `xml:"resultcode,attr"`
@@ -440,6 +445,7 @@ type Thread struct {
 
 func (t *Thread) comment() {}
 
+// Chat is an xml struct of comment.
 type Chat struct {
 	XMLName   xml.Name `xml:"chat"`
 	Thread    int64    `xml:"thread,attr"`
@@ -459,6 +465,7 @@ type Chat struct {
 
 func (c *Chat) comment() {}
 
+// ChatResult is an xml struct that returns the posting result of comment.
 type ChatResult struct {
 	XMLName xml.Name `xml:"chat_result"`
 	Thread  int64    `xml:"thread,attr"`
@@ -468,10 +475,12 @@ type ChatResult struct {
 
 func (r *ChatResult) comment() {}
 
+// CommentError is a struct containing error of StreamingComment function.
 type CommentError struct{ error }
 
 func (e *CommentError) comment() {}
 
+// SendChat is a struct to use when posting comment.
 type SendChat struct {
 	XMLName xml.Name `xml:"chat"`
 	Vpos    int64    `xml:"vpos,attr"`
@@ -481,12 +490,14 @@ type SendChat struct {
 	Comment string   `xml:",chardata"`
 }
 
+// Error code of PlayerStatus.
 const (
 	PlayerStatusErrorCodeFull                   = "full"
 	PlayerStatusErrorCodeNotlogin               = "notlogin"
 	PlayerStatusErrorCodeRequireCommunityMember = "require_community_member"
 )
 
+// PlayerStatusError is an error to return if Status of PlayerStatus is not ok.
 type PlayerStatusError struct {
 	Status string
 	Code   string
