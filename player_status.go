@@ -80,6 +80,7 @@ type Stream struct {
 	IsPriorityPrefecture interface{} `xml:"is_priority_prefecture"`
 }
 
+// Press is unknown data.
 type Press struct {
 	DisplayLines int64 `xml:"display_lines"`
 	DisplayTime  int64 `xml:"display_time"`
@@ -88,15 +89,18 @@ type Press struct {
 	StyleConf interface{} `xml:"style_conf"`
 }
 
+// Telop is unknown data.
 type Telop struct {
 	Enable int64 `xml:"enable"`
 }
 
+// ContentsList is a list of contents.
 type ContentsList struct {
 	// TODO slice?
 	Contents Contents `xml:"contents"`
 }
 
+// Contents is detailed information of contents such as URL of RTMP etc.
 type Contents struct {
 	ID           string `xml:"id,attr"`
 	DisableAudio int64  `xml:"disableAudio,attr"`
@@ -135,6 +139,7 @@ type TwitterInfo struct {
 	TweetToken      string      `xml:"tweet_token"`
 }
 
+// Rtmp is information on RTMP.
 type Rtmp struct {
 	IsFms     int64  `xml:"is_fms,attr"`
 	RtmptPort int64  `xml:"rtmpt_port,attr"`
@@ -142,18 +147,21 @@ type Rtmp struct {
 	Ticket    string `xml:"ticket"`
 }
 
+// Ms is comment server information.
 type Ms struct {
 	Addr   string `xml:"addr"`
 	Port   int64  `xml:"port"`
 	Thread int64  `xml:"thread"`
 }
 
+// Twitter is Twitter setting information of the niconico live.
 type Twitter struct {
 	LiveEnabled  int64  `xml:"live_enabled"`
 	VipModeCount int64  `xml:"vip_mode_count"`
 	LiveAPIURL   string `xml:"live_api_url"`
 }
 
+// Player is the setting information of the player.
 type Player struct {
 	QosAnalytics                 int64       `xml:"qos_analytics"`
 	DialogImage                  DialogImage `xml:"dialog_image"`
@@ -161,10 +169,12 @@ type Player struct {
 	ErrorReport                  int64       `xml:"error_report"`
 }
 
+// DialogImage is the URL of the dialog image displayed to the player.
 type DialogImage struct {
 	Oidashi string `xml:"oidashi"`
 }
 
+// Marquee is information related to the game etc.
 type Marquee struct {
 	Category         string `xml:"category"`
 	GameKey          string `xml:"game_key"`
@@ -172,6 +182,7 @@ type Marquee struct {
 	ForceNicowariOff int64  `xml:"force_nicowari_off"`
 }
 
+// Error stores the error code if Status of PlayerStatus is not ok.
 type Error struct {
 	Code string `xml:"code"`
 }
