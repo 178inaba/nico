@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -31,6 +32,7 @@ type Client struct {
 	loginRawurl         string
 	liveBaseRawurl      string
 	communityBaseRawurl string
+	seigaBaseRawurl     string
 	UserSession         string
 }
 
@@ -40,6 +42,7 @@ func NewClient() *Client {
 		loginRawurl:         "https://secure.nicovideo.jp/secure/login",
 		liveBaseRawurl:      "http://live.nicovideo.jp",
 		communityBaseRawurl: "http://com.nicovideo.jp",
+		seigaBaseRawurl:     "http://seiga.nicovideo.jp",
 	}
 }
 
@@ -325,6 +328,45 @@ func (c *Client) GetCommunityIDFromLiveID(ctx context.Context, liveID string) (s
 	return findCommunityID(href), nil
 }
 
+// GetUserInfo is get user's information.
+func (c *Client) GetUserInfo(ctx context.Context, userID int) (*UserInfo, error) {
+	u, err := url.Parse(c.seigaBaseRawurl)
+	if err != nil {
+		return nil, err
+	}
+	u.Path = "api/user/info"
+
+	v := url.Values{}
+	v.Set("id", strconv.Itoa(userID))
+	u.RawQuery = v.Encode()
+
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(resp.Status)
+	}
+
+	ui := UserInfo{}
+	if err := xml.NewDecoder(resp.Body).Decode(&ui); err != nil {
+		return nil, err
+	}
+	if ui.Nickname == "-" {
+		return nil, errors.New("user not found")
+	}
+
+	return &ui, nil
+}
+
 // MakeLiveClient creates a client with broadcast information from liveID.
 func (c *Client) MakeLiveClient(ctx context.Context, liveID string) (*LiveClient, error) {
 	ps, err := c.GetPlayerStatus(ctx, liveID)
@@ -488,6 +530,12 @@ type SendChat struct {
 	UserID  string   `xml:"user_id,attr"`
 	Postkey string   `xml:"postkey,attr"`
 	Comment string   `xml:",chardata"`
+}
+
+// UserInfo is user information.
+type UserInfo struct {
+	ID       int    `xml:"user>id"`
+	Nickname string `xml:"user>nickname"`
 }
 
 // Error code of PlayerStatus.

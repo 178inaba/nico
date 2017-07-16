@@ -85,3 +85,29 @@ func TestGetCommunityIDFromLiveID(t *testing.T) {
 		t.Fatalf("want %q but %q", "co1234567", communityID)
 	}
 }
+
+func TestGetUserInfo(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := r.URL.Query().Get("id")
+		if userID != "2525" {
+			t.Fatalf("want %q but %q", "2525", userID)
+		}
+		_, err := io.WriteString(w, `<?xml version="1.0" encoding="UTF-8"?><response><user><id>2525</id><nickname>foo</nickname></user></response>`)
+		if err != nil {
+			t.Fatalf("should not be fail: %v", err)
+		}
+	}))
+	defer ts.Close()
+
+	c := &Client{seigaBaseRawurl: ts.URL}
+	ui, err := c.GetUserInfo(context.Background(), 2525)
+	if err != nil {
+		t.Fatalf("should not be fail: %v", err)
+	}
+	if ui.ID != 2525 {
+		t.Fatalf("want %d but %d", 2525, ui.ID)
+	}
+	if ui.Nickname != "foo" {
+		t.Fatalf("want %q but %q", "foo", ui.Nickname)
+	}
+}
