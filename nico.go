@@ -32,7 +32,7 @@ type Client struct {
 	loginRawurl         string
 	liveBaseRawurl      string
 	communityBaseRawurl string
-	seigaBaseRawurl     string
+	ceBaseRawurl        string
 	UserSession         string
 }
 
@@ -42,7 +42,7 @@ func NewClient() *Client {
 		loginRawurl:         "https://secure.nicovideo.jp/secure/login",
 		liveBaseRawurl:      "http://live.nicovideo.jp",
 		communityBaseRawurl: "http://com.nicovideo.jp",
-		seigaBaseRawurl:     "http://seiga.nicovideo.jp",
+		ceBaseRawurl:        "http://api.ce.nicovideo.jp",
 	}
 }
 
@@ -329,15 +329,15 @@ func (c *Client) GetCommunityIDFromLiveID(ctx context.Context, liveID string) (s
 }
 
 // GetUserInfo is get user's information.
-func (c *Client) GetUserInfo(ctx context.Context, userID int) (*UserInfo, error) {
-	u, err := url.Parse(c.seigaBaseRawurl)
+func (c *Client) GetUserInfo(ctx context.Context, userID int64) (*UserInfo, error) {
+	u, err := url.Parse(c.ceBaseRawurl)
 	if err != nil {
 		return nil, err
 	}
-	u.Path = "api/user/info"
+	u.Path = "api/v1/user.info"
 
 	v := url.Values{}
-	v.Set("id", strconv.Itoa(userID))
+	v.Set("user_id", strconv.FormatInt(userID, 10))
 	u.RawQuery = v.Encode()
 
 	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
@@ -356,15 +356,16 @@ func (c *Client) GetUserInfo(ctx context.Context, userID int) (*UserInfo, error)
 		return nil, errors.New(resp.Status)
 	}
 
-	ui := UserInfo{}
-	if err := xml.NewDecoder(resp.Body).Decode(&ui); err != nil {
+	nur := nicovideoUserResponse{}
+	if err := xml.NewDecoder(resp.Body).Decode(&nur); err != nil {
 		return nil, err
 	}
-	if ui.Nickname == "-" {
-		return nil, errors.New("user not found")
+	if nur.Status != "ok" {
+		nur.Error.Status = nur.Status
+		return nil, nur.Error
 	}
 
-	return &ui, nil
+	return &nur.UserInfo, nil
 }
 
 // MakeLiveClient creates a client with broadcast information from liveID.
@@ -532,10 +533,28 @@ type SendChat struct {
 	Comment string   `xml:",chardata"`
 }
 
+type nicovideoUserResponse struct {
+	Status   string        `xml:"status,attr"`
+	UserInfo UserInfo      `xml:"user"`
+	Error    UserInfoError `xml:"error"`
+}
+
 // UserInfo is user information.
 type UserInfo struct {
-	ID       int    `xml:"user>id"`
-	Nickname string `xml:"user>nickname"`
+	ID           int64  `xml:"id"`
+	Nickname     string `xml:"nickname"`
+	ThumbnailURL string `xml:"thumbnail_url"`
+}
+
+// UserInfoError is an error when acquiring user information.
+type UserInfoError struct {
+	Status      string
+	Code        string `xml:"code"`
+	Description string `xml:"description"`
+}
+
+func (e UserInfoError) Error() string {
+	return fmt.Sprintf("%s: %s: %s", e.Status, e.Code, e.Description)
 }
 
 // Error code of PlayerStatus.
