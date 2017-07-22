@@ -43,6 +43,7 @@ func (e UserInfoError) Error() string {
 }
 
 // GetNicovideoUserResponse gets the response of the user information API.
+// No login required.
 func (c *Client) GetNicovideoUserResponse(ctx context.Context, userID int64) (*NicovideoUserResponse, error) {
 	u, err := url.Parse(c.ceBaseRawurl)
 	if err != nil {
@@ -81,6 +82,7 @@ func (c *Client) GetNicovideoUserResponse(ctx context.Context, userID int64) (*N
 }
 
 // GetUserInfo is get user's information.
+// No login required.
 func (c *Client) GetUserInfo(ctx context.Context, userID int64) (*UserInfo, error) {
 	nur, err := c.GetNicovideoUserResponse(ctx, userID)
 	if err != nil {

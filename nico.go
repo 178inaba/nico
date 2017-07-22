@@ -280,6 +280,7 @@ func (c *Client) LeaveCommunity(ctx context.Context, communityID string) error {
 }
 
 // GetCommunityIDFromLiveID gets the ID of the community that is broadcasting in liveID.
+// No login required.
 func (c *Client) GetCommunityIDFromLiveID(ctx context.Context, liveID string) (string, error) {
 	u, err := url.Parse(c.liveBaseRawurl)
 	if err != nil {
