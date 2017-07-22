@@ -2,6 +2,7 @@ package nico
 
 import "strings"
 
+// Comment color.
 const (
 	CommentColorWhite  = "white"
 	CommentColorRed    = "red"
