@@ -1,3 +1,4 @@
+// Package nico provides accessing the Niconico API.
 package nico
 
 import (
