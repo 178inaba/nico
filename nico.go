@@ -66,7 +66,6 @@ func (c *Client) Login(ctx context.Context, mail, password string) (string, erro
 		return "", err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusFound {
 		return "", errors.New(resp.Status)
 	}
@@ -78,7 +77,6 @@ func (c *Client) Login(ctx context.Context, mail, password string) (string, erro
 			return c.UserSession, nil
 		}
 	}
-
 	return "", errors.New("login failed")
 }
 
@@ -106,7 +104,6 @@ func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerSta
 		return nil, err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New(resp.Status)
 	}
@@ -118,7 +115,6 @@ func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerSta
 	if ps.Status != "ok" {
 		return nil, PlayerStatusError{Status: ps.Status, Code: ps.Error.Code}
 	}
-
 	return &ps, nil
 }
 
@@ -146,7 +142,6 @@ func (c *Client) GetPostkey(ctx context.Context, thread int64) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return "", errors.New(resp.Status)
 	}
@@ -163,7 +158,6 @@ func (c *Client) GetPostkey(ctx context.Context, thread int64) (string, error) {
 	if postkey == "" {
 		return "", errors.New("postkey is empty")
 	}
-
 	return postkey, nil
 }
 
@@ -173,7 +167,7 @@ func (c *Client) FollowCommunity(ctx context.Context, communityID string) error 
 	if err != nil {
 		return err
 	}
-	u.Path = fmt.Sprintf("motion/%s", communityID)
+	u.Path = path.Join("motion", communityID)
 
 	v := url.Values{}
 	v.Set("mode", "commit")
@@ -195,13 +189,11 @@ func (c *Client) FollowCommunity(ctx context.Context, communityID string) error 
 		return err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusFound {
 		return errors.New(resp.Status)
 	} else if !strings.Contains(resp.Header.Get("Location"), "done") {
 		return errors.New("community follow failed")
 	}
-
 	return nil
 }
 
@@ -210,7 +202,7 @@ func (c *Client) getLeaveCommunityFormData(ctx context.Context, communityID stri
 	if err != nil {
 		return nil, err
 	}
-	u.Path = fmt.Sprintf("leave/%s", communityID)
+	u.Path = path.Join("leave", communityID)
 
 	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
 	if err != nil {
@@ -224,7 +216,6 @@ func (c *Client) getLeaveCommunityFormData(ctx context.Context, communityID stri
 		return nil, err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New(resp.Status)
 	}
@@ -246,7 +237,6 @@ func (c *Client) getLeaveCommunityFormData(ctx context.Context, communityID stri
 		}
 		v.Set(name, value)
 	})
-
 	return v, nil
 }
 
@@ -256,7 +246,7 @@ func (c *Client) LeaveCommunity(ctx context.Context, communityID string) error {
 	if err != nil {
 		return err
 	}
-	u.Path = fmt.Sprintf("leave/%s", communityID)
+	u.Path = path.Join("leave", communityID)
 
 	v, err := c.getLeaveCommunityFormData(ctx, communityID)
 	if err != nil {
@@ -280,13 +270,11 @@ func (c *Client) LeaveCommunity(ctx context.Context, communityID string) error {
 		return err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusFound {
 		return errors.New(resp.Status)
 	} else if !strings.Contains(resp.Header.Get("Location"), "done") {
 		return errors.New("community leave failed")
 	}
-
 	return nil
 }
 
@@ -309,7 +297,6 @@ func (c *Client) GetCommunityIDFromLiveID(ctx context.Context, liveID string) (s
 		return "", err
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != http.StatusOK {
 		return "", errors.New(resp.Status)
 	}
@@ -318,12 +305,10 @@ func (c *Client) GetCommunityIDFromLiveID(ctx context.Context, liveID string) (s
 	if err != nil {
 		return "", err
 	}
-
 	href, ok := doc.Find(".shosai > a").Attr("href")
 	if !ok {
 		return "", errors.New("community not found")
 	}
-
 	return findCommunityID(href), nil
 }
 
@@ -343,7 +328,6 @@ func (c *Client) MakeLiveClient(ctx context.Context, liveID string) (*LiveClient
 		<-ctx.Done()
 		conn.Close()
 	}()
-
 	return &LiveClient{Client: c, ps: ps, conn: conn}, nil
 }
 
