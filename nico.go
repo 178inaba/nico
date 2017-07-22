@@ -329,19 +329,19 @@ func (c *Client) MakeLiveClient(ctx context.Context, liveID string) (*LiveClient
 		<-ctx.Done()
 		conn.Close()
 	}()
-	return &LiveClient{Client: c, ps: ps, conn: conn}, nil
+	return &LiveClient{Client: c, PlayerStatus: ps, conn: conn}, nil
 }
 
 // LiveClient is a client with broadcast information.
 type LiveClient struct {
 	*Client
-	ps   *PlayerStatus
-	conn net.Conn
+	PlayerStatus *PlayerStatus
+	conn         net.Conn
 }
 
 // StreamingComment return the channel that receives comment.
 func (c *LiveClient) StreamingComment(ctx context.Context, resFrom int64) (chan Comment, error) {
-	b, err := xml.Marshal(SendThread{Thread: c.ps.Ms.Thread, Version: 20061206, ResFrom: resFrom})
+	b, err := xml.Marshal(SendThread{Thread: c.PlayerStatus.Ms.Thread, Version: 20061206, ResFrom: resFrom})
 	if err != nil {
 		return nil, err
 	}
@@ -384,14 +384,14 @@ func (c *LiveClient) StreamingComment(ctx context.Context, resFrom int64) (chan 
 
 // PostComment post the comment.
 func (c *LiveClient) PostComment(ctx context.Context, comment string, mail Mail) error {
-	postkey, err := c.GetPostkey(ctx, c.ps.Ms.Thread)
+	postkey, err := c.GetPostkey(ctx, c.PlayerStatus.Ms.Thread)
 	if err != nil {
 		return err
 	}
 	chat := SendChat{
-		Vpos:    (time.Now().UnixNano() - c.ps.Stream.BaseTime*int64(time.Second)) / (int64(time.Millisecond) * 10),
+		Vpos:    (time.Now().UnixNano() - c.PlayerStatus.Stream.BaseTime*int64(time.Second)) / (int64(time.Millisecond) * 10),
 		Mail:    mail.String(),
-		UserID:  fmt.Sprint(c.ps.User.UserID),
+		UserID:  fmt.Sprint(c.PlayerStatus.User.UserID),
 		Postkey: postkey,
 		Comment: comment,
 	}
