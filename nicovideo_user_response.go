@@ -42,7 +42,7 @@ func (e UserInfoError) Error() string {
 	return fmt.Sprintf("%s: %s: %s", e.Status, e.Code, e.Description)
 }
 
-// GetNicovideoUserResponse is get user's information.
+// GetNicovideoUserResponse gets the response of the user information API.
 func (c *Client) GetNicovideoUserResponse(ctx context.Context, userID int64) (*NicovideoUserResponse, error) {
 	u, err := url.Parse(c.ceBaseRawurl)
 	if err != nil {
