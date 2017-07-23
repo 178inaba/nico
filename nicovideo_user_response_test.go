@@ -38,6 +38,9 @@ func TestGetUserInfo(t *testing.T) {
 	if err == nil {
 		t.Fatalf("should be fail: %v", err)
 	}
+	if err.Error() != "fail: NOT_FOUND: user not found" {
+		t.Fatalf("want %q but %q", "fail: NOT_FOUND: user not found", err)
+	}
 	uie, ok := err.(UserInfoError)
 	if !ok {
 		t.Fatalf("should be assertion to UserInfoError: %T", err)
