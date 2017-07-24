@@ -81,44 +81,6 @@ func (c *Client) Login(ctx context.Context, mail, password string) (string, erro
 	return "", errors.New("login failed")
 }
 
-// GetPlayerStatus gets the player status.
-func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerStatus, error) {
-	u, err := url.Parse(c.liveBaseRawurl)
-	if err != nil {
-		return nil, err
-	}
-	u.Path = "api/getplayerstatus"
-
-	v := url.Values{}
-	v.Set("v", liveID)
-	u.RawQuery = v.Encode()
-
-	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.UserSession})
-
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New(resp.Status)
-	}
-
-	ps := PlayerStatus{}
-	if err := xml.NewDecoder(resp.Body).Decode(&ps); err != nil {
-		return nil, err
-	}
-	if ps.Status != "ok" {
-		return nil, PlayerStatusError{Status: ps.Status, Code: ps.Error.Code}
-	}
-	return &ps, nil
-}
-
 // GetPostkey gets the key to be specified when posting a comment.
 func (c *Client) GetPostkey(ctx context.Context, thread int64) (string, error) {
 	u, err := url.Parse(c.liveBaseRawurl)

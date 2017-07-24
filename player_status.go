@@ -1,5 +1,13 @@
 package nico
 
+import (
+	"context"
+	"encoding/xml"
+	"errors"
+	"net/http"
+	"net/url"
+)
+
 // PlayerStatus is niconico live player status.
 type PlayerStatus struct {
 	Status string `xml:"status,attr"`
@@ -185,4 +193,42 @@ type Marquee struct {
 // Error stores the error code if Status of PlayerStatus is not ok.
 type Error struct {
 	Code string `xml:"code"`
+}
+
+// GetPlayerStatus gets the player status.
+func (c *Client) GetPlayerStatus(ctx context.Context, liveID string) (*PlayerStatus, error) {
+	u, err := url.Parse(c.liveBaseRawurl)
+	if err != nil {
+		return nil, err
+	}
+	u.Path = "api/getplayerstatus"
+
+	v := url.Values{}
+	v.Set("v", liveID)
+	u.RawQuery = v.Encode()
+
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	req.AddCookie(&http.Cookie{Name: "user_session", Value: c.UserSession})
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(resp.Status)
+	}
+
+	ps := PlayerStatus{}
+	if err := xml.NewDecoder(resp.Body).Decode(&ps); err != nil {
+		return nil, err
+	}
+	if ps.Status != "ok" {
+		return nil, PlayerStatusError{Status: ps.Status, Code: ps.Error.Code}
+	}
+	return &ps, nil
 }
