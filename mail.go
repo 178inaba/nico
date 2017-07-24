@@ -15,6 +15,18 @@ const (
 	CommentColorPurple = "purple"
 )
 
+var validateCommentColorMap = map[string]bool{
+	CommentColorWhite:  true,
+	CommentColorRed:    true,
+	CommentColorPink:   true,
+	CommentColorOrange: true,
+	CommentColorYellow: true,
+	CommentColorGreen:  true,
+	CommentColorCyan:   true,
+	CommentColorBlue:   true,
+	CommentColorPurple: true,
+}
+
 // Mail is a structure that specifies comment options.
 type Mail struct {
 	Is184        bool
@@ -26,7 +38,7 @@ func (m Mail) String() string {
 	if m.Is184 {
 		strs = append(strs, "184")
 	}
-	if m.CommentColor != "" {
+	if validateCommentColorMap[m.CommentColor] {
 		strs = append(strs, m.CommentColor)
 	}
 	return strings.Join(strs, " ")
