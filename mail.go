@@ -15,6 +15,13 @@ const (
 	CommentColorPurple = "purple"
 )
 
+// Comment size.
+const (
+	SizeMedium = "medium"
+	SizeBig    = "big"
+	SizeSmall  = "small"
+)
+
 var validateCommentColorMap = map[string]bool{
 	CommentColorWhite:  true,
 	CommentColorRed:    true,
@@ -27,10 +34,17 @@ var validateCommentColorMap = map[string]bool{
 	CommentColorPurple: true,
 }
 
+var validateSizeMap = map[string]bool{
+	SizeMedium: true,
+	SizeBig:    true,
+	SizeSmall:  true,
+}
+
 // Mail is a structure that specifies comment options.
 type Mail struct {
 	Is184        bool
 	CommentColor string
+	Size         string
 }
 
 func (m Mail) String() string {
@@ -40,6 +54,9 @@ func (m Mail) String() string {
 	}
 	if validateCommentColorMap[m.CommentColor] {
 		strs = append(strs, m.CommentColor)
+	}
+	if validateSizeMap[m.Size] {
+		strs = append(strs, m.Size)
 	}
 	return strings.Join(strs, " ")
 }
