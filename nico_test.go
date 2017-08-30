@@ -10,6 +10,22 @@ import (
 	"time"
 )
 
+func TestNewClient(t *testing.T) {
+	c := NewClient()
+	if got, want := c.loginRawurl, "https://secure.nicovideo.jp/secure/login"; got != want {
+		t.Fatalf("loginRawurl: %v, want %v", got, want)
+	}
+	if got, want := c.liveBaseRawurl, "http://live.nicovideo.jp"; got != want {
+		t.Fatalf("liveBaseRawurl: %v, want %v", got, want)
+	}
+	if got, want := c.communityBaseRawurl, "http://com.nicovideo.jp"; got != want {
+		t.Fatalf("communityBaseRawurl: %v, want %v", got, want)
+	}
+	if got, want := c.ceBaseRawurl, "http://api.ce.nicovideo.jp"; got != want {
+		t.Fatalf("ceBaseRawurl: %v, want %v", got, want)
+	}
+}
+
 func TestLogin(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{Name: "user_session", Value: "deleted", Path: "/", Expires: time.Now()})
